@@ -1,0 +1,547 @@
+.shell {
+  --ink: #151711;
+  --paper: #f3f0e5;
+  --paper-deep: #e6e0cf;
+  --signal: #dfff32;
+  --signal-dark: #304000;
+  --rust: #c74d2e;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 76% 12%, rgba(223, 255, 50, 0.52), transparent 18rem),
+    linear-gradient(115deg, var(--paper) 0 66%, #ded8c6 66% 100%);
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+.masthead,
+.hero,
+.workspace,
+.footer {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 92px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.wordmark {
+  color: var(--ink);
+  font-family: 'Baskerville', 'Iowan Old Style', serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: -0.07em;
+}
+
+.wordmark span {
+  font-weight: 400;
+  font-style: italic;
+}
+
+.syncBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font:
+    700 0.68rem/1 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.syncBadge > span {
+  width: 0.72rem;
+  height: 0.72rem;
+  background: currentColor;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(223, 255, 50, 0.34);
+}
+
+.sync_live {
+  color: #4f6900;
+}
+.sync_connecting {
+  color: #866b00;
+}
+.sync_disconnected,
+.sync_delayed {
+  color: var(--rust);
+}
+
+.sync_connecting > span,
+.sync_delayed > span {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.7fr 0.75fr;
+  gap: 5vw;
+  align-items: end;
+  padding: clamp(4rem, 10vw, 8rem) 0 clamp(3rem, 7vw, 6rem);
+}
+
+.kicker,
+.index {
+  margin: 0 0 1.3rem;
+  font:
+    700 0.7rem/1 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 880px;
+  margin: 0;
+  font:
+    400 clamp(4rem, 10vw, 8.8rem)/0.78 'Baskerville',
+    'Iowan Old Style',
+    serif;
+  letter-spacing: -0.075em;
+}
+
+.hero h1 em {
+  position: relative;
+  font-weight: 400;
+}
+
+.hero h1 em::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -0.04em;
+  right: -0.08em;
+  bottom: 0.02em;
+  height: 0.19em;
+  transform: rotate(-1deg);
+  background: var(--signal);
+}
+
+.intro {
+  max-width: 30rem;
+  margin: 0 0 0.4rem;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--ink);
+  font:
+    500 0.9rem/1.75 'Avenir Next',
+    sans-serif;
+}
+
+.workspace {
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border: 1px solid var(--ink);
+  background: rgba(247, 245, 237, 0.78);
+  box-shadow: 12px 12px 0 var(--ink);
+  backdrop-filter: blur(12px);
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0;
+  margin-bottom: clamp(3rem, 7vw, 5.5rem);
+}
+
+.composer label {
+  display: block;
+}
+.composer label > span {
+  display: block;
+  margin-bottom: 0.6rem;
+  font:
+    700 0.68rem/1 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.composer input,
+.editForm input {
+  width: 100%;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font:
+    400 clamp(1.4rem, 3vw, 2.25rem)/1.2 'Baskerville',
+    serif;
+}
+
+.composer input {
+  padding: 0.55rem 0.15rem 0.8rem;
+}
+.composer input:focus,
+.editForm input:focus {
+  border-color: #7eaa00;
+  box-shadow: 0 3px 0 var(--signal);
+}
+
+.composer small,
+.editForm small,
+.rowError {
+  display: block;
+  min-height: 1.2rem;
+  margin-top: 0.45rem;
+  color: #9c321e;
+  font:
+    600 0.75rem/1.3 'Avenir Next',
+    sans-serif;
+}
+
+.composer > button {
+  align-self: end;
+  display: flex;
+  min-width: 156px;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.65rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: var(--signal);
+  font:
+    800 0.72rem/1 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.composer > button:hover:not(:disabled) {
+  transform: translate(-3px, -3px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.composer > button:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.listHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 3px solid var(--ink);
+}
+
+.listHeader > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+.listHeader .index {
+  margin: 0;
+}
+.listHeader h2 {
+  margin: 0;
+  font:
+    400 clamp(2rem, 5vw, 3.4rem)/1 'Baskerville',
+    serif;
+  letter-spacing: -0.04em;
+}
+
+.filters {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.filters button,
+.editActions button,
+.deleteButton {
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  font:
+    700 0.66rem/1 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.filters button {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid transparent;
+}
+.filters button[aria-pressed='true'] {
+  border-color: var(--ink);
+  background: var(--signal);
+}
+
+.todoList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.todoRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  min-height: 104px;
+  border-bottom: 1px solid rgba(21, 23, 17, 0.35);
+  animation: arrive 450ms both;
+}
+
+.rowNumber,
+.meta {
+  color: rgba(21, 23, 17, 0.55);
+  font:
+    600 0.65rem/1.4 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.check {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+.check:hover:not(:disabled) {
+  transform: scale(1.08);
+  background: var(--signal);
+}
+.check[aria-pressed='true'] {
+  background: var(--signal);
+}
+
+.todoBody {
+  min-width: 0;
+}
+.titleButton {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  font:
+    400 clamp(1.25rem, 2.5vw, 1.8rem)/1.15 'Baskerville',
+    serif;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+}
+.meta {
+  display: block;
+  margin-top: 0.45rem;
+}
+.completed .titleButton {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  opacity: 0.52;
+}
+.deleteButton {
+  opacity: 0;
+  padding: 0.8rem;
+  transition: opacity 140ms ease;
+}
+.todoRow:hover .deleteButton,
+.deleteButton:focus-visible {
+  opacity: 1;
+}
+.deleteButton:hover {
+  color: var(--rust);
+}
+
+.editForm {
+  padding: 1rem 0;
+}
+.editForm label {
+  display: block;
+}
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+.editActions button {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--ink);
+}
+.editActions button:first-child {
+  background: var(--signal);
+}
+.conflict {
+  margin: 0.8rem 0;
+  padding: 0.7rem;
+  background: #ffe0d5;
+  font:
+    600 0.78rem/1.4 'Avenir Next',
+    sans-serif;
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  text-align: center;
+}
+.emptyState strong {
+  font:
+    italic 400 2rem/1 'Baskerville',
+    serif;
+}
+.emptyState span {
+  margin-top: -4rem;
+  font:
+    600 0.72rem/1 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dialog {
+  width: min(470px, 100%);
+  max-width: calc(100vw - 3rem);
+  margin: auto;
+  padding: 2.5rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 10px 10px 0 var(--signal);
+}
+.dialog::backdrop {
+  background: rgba(21, 23, 17, 0.65);
+  backdrop-filter: blur(5px);
+}
+.dialog h3 {
+  margin: 0 0 1rem;
+  font:
+    400 2.3rem/1.05 'Baskerville',
+    serif;
+}
+.dialog p:not(.kicker) {
+  font:
+    500 0.9rem/1.6 'Avenir Next',
+    sans-serif;
+}
+.dialog > div {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 2rem;
+}
+.dialog button {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ink);
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dialog button:first-child {
+  color: white;
+  background: var(--rust);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 2.5rem 0 4rem;
+  font:
+    700 0.66rem/1.5 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(0.55);
+    opacity: 0.45;
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero h1 {
+    font-size: clamp(3.8rem, 19vw, 6.5rem);
+  }
+  .intro {
+    max-width: 24rem;
+  }
+  .workspace {
+    padding: 1.2rem;
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+  .composer {
+    grid-template-columns: 1fr;
+  }
+  .composer > button {
+    margin: 0.2rem 0 0;
+  }
+  .listHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+  .todoRow {
+    grid-template-columns: 1.8rem 2.2rem minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.7rem 0;
+  }
+  .deleteButton {
+    grid-column: 3;
+    justify-self: start;
+    opacity: 1;
+    padding: 0.2rem 0;
+  }
+  .footer {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .syncBadge > span,
+  .todoRow {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,148 @@
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  background: #f3f0e5;
+}
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+button,
+input {
+  font: inherit;
+}
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #7eaa00;
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.loading-state,
+.fatal-state {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #151711;
+  background: #f3f0e5;
+  font-family: 'Avenir Next', sans-serif;
+  text-align: center;
+}
+.loading-mark {
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid #151711;
+  border-top-color: #dfff32;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+.fatal-state h1 {
+  margin: 0;
+  font:
+    400 clamp(3rem, 8vw, 6rem)/0.9 'Baskerville',
+    serif;
+  letter-spacing: -0.05em;
+}
+.fatal-state a {
+  color: inherit;
+  font-weight: 700;
+}
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.diagnostics {
+  position: fixed;
+  z-index: 10;
+  right: 1rem;
+  bottom: 1rem;
+  font:
+    700 0.68rem/1.2 'Avenir Next',
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.diagnostics > button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #151711;
+  color: #151711;
+  background: #f3f0e5;
+  cursor: pointer;
+}
+.diagnostics__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #c74d2e;
+}
+.diagnostics__dot--success {
+  background: #7eaa00;
+}
+.diagnostics__dot--pending {
+  background: #b28b00;
+}
+.diagnostics__panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  width: 270px;
+  padding: 1rem;
+  border: 1px solid #151711;
+  background: #f3f0e5;
+  box-shadow: 5px 5px 0 #151711;
+}
+.diagnostics__panel p {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(21, 23, 17, 0.25);
+}
+.diagnostics__panel p:last-child {
+  border: 0;
+}
+.diagnostics__panel strong {
+  text-align: right;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-mark {
+    animation: none;
+  }
+}

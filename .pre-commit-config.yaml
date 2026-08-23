@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: frontend-format
+        name: frontend format check
+        entry: corepack pnpm --dir frontend format:check
+        language: system
+        pass_filenames: false
+        files: ^frontend/
+      - id: generated-contract
+        name: generated contract is current
+        entry: make generate
+        language: system
+        pass_filenames: false
+        files: ^(backend/src|openapi\.json|frontend/src/api/generated)/
+

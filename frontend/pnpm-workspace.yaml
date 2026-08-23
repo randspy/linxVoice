@@ -1,0 +1,11 @@
+overrides:
+  js-yaml: 4.3.1
+
+minimumReleaseAgeExclude:
+  - '@tanstack/eslint-plugin-query@5.102.1'
+  - '@tanstack/query-core@5.102.1'
+  - '@tanstack/react-query@5.102.1'
+  - '@tanstack/react-router@1.170.32'
+  - '@tanstack/router-core@1.171.27'
+  - '@tanstack/router-generator@1.167.33'
+  - '@tanstack/router-plugin@1.168.35'
