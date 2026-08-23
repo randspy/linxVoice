@@ -430,6 +430,10 @@
 }
 
 .dialog {
+  --ink: #151711;
+  --paper: #f3f0e5;
+  --signal: #dfff32;
+  --rust: #c74d2e;
   width: min(470px, 100%);
   max-width: calc(100vw - 3rem);
   margin: auto;

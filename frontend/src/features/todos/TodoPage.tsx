@@ -1,7 +1,13 @@
 import { eq, useDbClient, useLiveQuery } from '@tanstack/react-db'
 import { useForm } from '@tanstack/react-form'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Toggle } from '@/components/ui/toggle'
 
 import { ApiError } from '../../api/client'
 import { createTodo, getTodoCollection, removeTodo, type Todo, updateTodo } from './todoCollection'
@@ -145,7 +151,8 @@ function CreateTodoForm() {
         {(field) => (
           <label>
             <span>Broadcast a new Todo</span>
-            <input
+            <Input
+              className="h-auto rounded-none"
               name={field.name}
               value={field.state.value}
               onBlur={field.handleBlur}
@@ -162,10 +169,14 @@ function CreateTodoForm() {
       </form.Field>
       <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
-          <button type="submit" disabled={!canSubmit || isSubmitting}>
+          <Button
+            className="h-auto rounded-none"
+            type="submit"
+            disabled={!canSubmit || isSubmitting}
+          >
             <span>{isSubmitting ? 'Confirming' : 'Transmit'}</span>
             <span aria-hidden="true">↗</span>
-          </button>
+          </Button>
         )}
       </form.Subscribe>
     </form>
@@ -220,16 +231,18 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
   return (
     <li className={`${styles.todoRow}${todo.completed ? ` ${styles.completed}` : ''}`}>
       <span className={styles.rowNumber}>{String(index).padStart(2, '0')}</span>
-      <button
-        type="button"
+      <Button
         className={styles.check}
+        variant="outline"
+        size="icon"
+        type="button"
         aria-label={todo.completed ? `Mark ${todo.title} active` : `Complete ${todo.title}`}
         aria-pressed={todo.completed}
         disabled={pending}
         onClick={() => void toggle()}
       >
         <span aria-hidden="true">{todo.completed ? '✓' : ''}</span>
-      </button>
+      </Button>
 
       <div className={styles.todoBody}>
         {editing ? (
@@ -244,7 +257,8 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
               {(field) => (
                 <label>
                   <span className="sr-only">Edit Todo title</span>
-                  <input
+                  <Input
+                    className="h-auto rounded-none"
                     autoFocus
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -262,10 +276,11 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
               </p>
             ) : null}
             <div className={styles.editActions}>
-              <button type="submit" disabled={pending}>
+              <Button variant="outline" type="submit" disabled={pending}>
                 Apply{conflict ? ' again' : ''}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => {
                   editForm.reset({ title: todo.title })
@@ -275,19 +290,20 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
                 }}
               >
                 Discard
-              </button>
+              </Button>
             </div>
           </form>
         ) : (
           <>
-            <button
+            <Button
+              className={`h-auto rounded-none ${styles.titleButton}`}
+              variant="ghost"
               type="button"
-              className={styles.titleButton}
               disabled={pending}
               onClick={() => setEditing(true)}
             >
               {todo.title}
-            </button>
+            </Button>
             <span className={styles.meta}>
               v{todo.version} · {formatTimestamp(todo.updated_at)}
               {pending ? ' · awaiting echo' : ''}
@@ -301,7 +317,8 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
         )}
       </div>
 
-      <button
+      <Button
+        variant="ghost"
         type="button"
         className={styles.deleteButton}
         aria-label={`Delete ${todo.title}`}
@@ -309,7 +326,7 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
         onClick={() => setDeleteOpen(true)}
       >
         Remove
-      </button>
+      </Button>
 
       {deleteOpen ? (
         <DeleteDialog
@@ -331,41 +348,35 @@ function DeleteDialog({
   onConfirm: () => void
   onCancel: () => void
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (typeof dialog.showModal === 'function') dialog.showModal()
-    else dialog.setAttribute('open', '')
-    return () => {
-      if (dialog.open && typeof dialog.close === 'function') dialog.close()
-    }
-  }, [])
-
   return (
-    <dialog
-      ref={dialogRef}
-      className={styles.dialog}
-      aria-labelledby={`delete-${todo.id}`}
-      aria-describedby={`delete-note-${todo.id}`}
-      onCancel={(event) => {
-        event.preventDefault()
-        onCancel()
-      }}
-    >
-      <p className={styles.kicker}>Permanent action</p>
-      <h3 id={`delete-${todo.id}`}>Remove “{todo.title}”?</h3>
-      <p id={`delete-note-${todo.id}`}>The deletion will be broadcast to every connected list.</p>
-      <div>
-        <button type="button" onClick={onConfirm}>
-          Remove Todo
-        </button>
-        <button type="button" autoFocus onClick={onCancel}>
-          Keep it
-        </button>
-      </div>
-    </dialog>
+    <Dialog open onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent
+        className={`gap-0 rounded-none ring-0 ${styles.dialog}`}
+        showCloseButton={false}
+      >
+        <p className={styles.kicker}>Permanent action</p>
+        <DialogTitle asChild>
+          <h3 id={`delete-${todo.id}`}>Remove “{todo.title}”?</h3>
+        </DialogTitle>
+        <DialogDescription id={`delete-note-${todo.id}`}>
+          The deletion will be broadcast to every connected list.
+        </DialogDescription>
+        <div>
+          <Button className="h-auto rounded-none" type="button" onClick={onConfirm}>
+            Remove Todo
+          </Button>
+          <Button
+            className="h-auto rounded-none"
+            variant="outline"
+            type="button"
+            autoFocus
+            onClick={onCancel}
+          >
+            Keep it
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -379,14 +390,14 @@ function FilterTabs({
   return (
     <div className={styles.filters} aria-label="Filter Todos">
       {(['all', 'active', 'completed'] as const).map((filter) => (
-        <button
-          type="button"
+        <Toggle
           key={filter}
-          aria-pressed={active === filter}
-          onClick={() => onChange(filter)}
+          pressed={active === filter}
+          aria-label={filter}
+          onPressedChange={(pressed) => pressed && onChange(filter)}
         >
           {filter}
-        </button>
+        </Toggle>
       ))}
     </div>
   )
@@ -402,11 +413,15 @@ function SyncBadge({ state, pending }: { state: string; pending: number }) {
           ? 'Saved, sync delayed'
           : 'Disconnected'
   return (
-    <div className={`${styles.syncBadge} ${styles[`sync_${state}`]}`} role="status">
+    <Badge
+      className={`h-auto rounded-none border-0 bg-transparent p-0 ${styles.syncBadge} ${styles[`sync_${state}`]}`}
+      variant="outline"
+      role="status"
+    >
       <span aria-hidden="true" />
       {label}
       {pending ? ` · ${pending} pending` : ''}
-    </div>
+    </Badge>
   )
 }
 

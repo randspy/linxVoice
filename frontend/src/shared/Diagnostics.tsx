@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
 import { unwrap } from '../api/client'
 import { getReadyz } from '../api/generated/sdk.gen'
 
@@ -13,13 +16,15 @@ export function Diagnostics() {
   })
 
   return (
-    <aside className={`diagnostics${open ? ' diagnostics--open' : ''}`}>
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        <span className={`diagnostics__dot diagnostics__dot--${readiness.status}`} />
-        System
-      </button>
-      {open ? (
-        <div className="diagnostics__panel">
+    <aside className="diagnostics">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" type="button">
+            <span className={`diagnostics__dot diagnostics__dot--${readiness.status}`} />
+            System
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="diagnostics__panel" side="top" align="end" sideOffset={8}>
           <p>
             API / DB <strong>{readiness.data?.status ?? readiness.status}</strong>
           </p>
@@ -29,8 +34,8 @@ export function Diagnostics() {
           <p>
             Read mode <strong>Electric live query</strong>
           </p>
-        </div>
-      ) : null}
+        </PopoverContent>
+      </Popover>
     </aside>
   )
 }
