@@ -6,7 +6,7 @@ from alembic import command
 from alembic.config import Config
 from docker.errors import DockerException
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 from testcontainers.community.postgres import PostgresContainer
 
 from linxvoice.problems import Problem
@@ -21,27 +21,28 @@ def test_postgres_enforces_versioned_command_lifecycle() -> None:
             database_url = postgres.get_connection_url()
             migrate(database_url)
             engine = create_engine(database_url)
+            session_factory = sessionmaker(engine, expire_on_commit=False)
             todo_id = uuid4()
 
-            with Session(engine) as session, session.begin():
+            with session_factory() as session, session.begin():
                 created = create_todo(session, TodoCreate(id=todo_id, title="Tracer Todo"))
             assert created.todo.version == 1
             assert created.txid > 0
 
-            with Session(engine) as session, session.begin():
+            with session_factory() as session, session.begin():
                 changed = update_todo(session, todo_id, 1, TodoPatch(completed=True))
             assert changed.todo.completed is True
             assert changed.todo.version == 2
 
             with (
-                Session(engine) as session,
+                session_factory() as session,
                 session.begin(),
                 pytest.raises(Problem) as stale,
             ):
                 update_todo(session, todo_id, 1, TodoPatch(title="Stale"))
             assert stale.value.status == 412
 
-            with Session(engine) as session, session.begin():
+            with session_factory() as session, session.begin():
                 txid = delete_todo(session, todo_id, 2)
             assert txid > 0
     except DockerException as error:
