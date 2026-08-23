@@ -5,7 +5,7 @@ PNPM := corepack pnpm
 
 setup:
 	$(UV) sync --project backend --locked
-	$(PNPM) --dir frontend install --frozen-lockfile
+	cd frontend && $(PNPM) install --frozen-lockfile
 
 hooks:
 	cd backend && $(UV) run pre-commit install
@@ -26,26 +26,26 @@ backend:
 	cd backend && $(UV) run flask --app linxvoice.app run --debug --port 5000
 
 frontend:
-	$(PNPM) --dir frontend dev
+	cd frontend && $(PNPM) dev
 
 dev: infra-up migrate
 	$(MAKE) -j2 backend frontend
 
 generate:
 	cd backend && $(UV) run python -m linxvoice.openapi
-	$(PNPM) --dir frontend generate:api
+	cd frontend && $(PNPM) generate:api
 
 check:
 	cd backend && $(UV) run ruff format --check src tests migrations
 	cd backend && $(UV) run ruff check src tests migrations
 	cd backend && $(UV) run mypy src
-	$(PNPM) --dir frontend format:check
-	$(PNPM) --dir frontend lint
-	$(PNPM) --dir frontend typecheck
+	cd frontend && $(PNPM) format:check
+	cd frontend && $(PNPM) lint
+	cd frontend && $(PNPM) typecheck
 
 test:
 	cd backend && $(UV) run pytest --cov --cov-branch --cov-report=term-missing
-	$(PNPM) --dir frontend test:coverage
+	cd frontend && $(PNPM) test:coverage
 
 test-e2e:
-	$(PNPM) --dir frontend test:e2e
+	cd frontend && $(PNPM) test:e2e
