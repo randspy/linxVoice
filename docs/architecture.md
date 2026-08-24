@@ -1,5 +1,27 @@
 # Architecture
 
+## Backend dependency rule
+
+The backend follows Clean Architecture with four explicit layers:
+
+| Layer | Owns | Allowed dependencies |
+| --- | --- | --- |
+| `domain` | Todo entities, value objects, and business invariants | Python standard library |
+| `application` | Use cases, commands, results, repository ports, and Unit of Work port | `domain` |
+| `adapters` | Flask/Pydantic transport, SQLAlchemy persistence, Electric proxy | `application`, `domain` |
+| `bootstrap` | Configuration, dependency wiring, executable entry points | All inward layers |
+
+Dependencies point inward: `bootstrap -> adapters -> application -> domain`. The domain and
+application layers never import Flask, APIFlask, Pydantic, SQLAlchemy, HTTPX, or other delivery
+and persistence frameworks. Import Linter enforces both the direction and exhaustive placement of
+production modules.
+
+Todo commands enter through the HTTP adapter as Pydantic transport models and are converted to
+framework-independent application commands. The application service opens the Unit of Work,
+coordinates the repository port, and returns domain entities. The SQLAlchemy adapter performs the
+atomic version check and maps ORM records to domain entities. HTTP errors are produced only by the
+HTTP adapter.
+
 ## Ownership map
 
 | Concern | Owner |
@@ -34,4 +56,3 @@ The browser generates UUIDs and provisional optimistic timestamps. Flask owns ca
 PostgreSQL and Electric run in Compose. Flask and Vite run on the host for fast reloads. Vite proxies `/api`, `/healthz`, and `/readyz` to Flask, matching the same-origin browser boundary.
 
 No production images or deployment configuration are maintained.
-

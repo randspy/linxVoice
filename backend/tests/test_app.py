@@ -4,11 +4,11 @@ from uuid import UUID, uuid4
 import httpx
 import pytest
 
-from linxvoice.app import create_app
-from linxvoice.config import Settings
-from linxvoice.problems import Problem
-from linxvoice.todos.model import Todo
-from linxvoice.todos.service import MutationResult
+from linxvoice.application.todos.errors import StaleTodoVersion
+from linxvoice.application.todos.results import TodoDeleteResult, TodoMutationResult
+from linxvoice.bootstrap.app import create_app
+from linxvoice.bootstrap.config import Settings
+from linxvoice.domain.todos import Todo, TodoTitle
 
 
 @pytest.fixture
@@ -59,11 +59,11 @@ def test_create_returns_canonical_todo_and_txid(client, monkeypatch) -> None:  #
     todo_id = uuid4()
     todo = todo_factory(todo_id=todo_id)
 
-    def fake_create(_session, command):  # type: ignore[no-untyped-def]
+    def fake_create(_service, command):  # type: ignore[no-untyped-def]
         assert command.title == "Transmit this"
-        return MutationResult(todo=todo, txid=42)
+        return TodoMutationResult(todo=todo, transaction_id=42)
 
-    monkeypatch.setattr("linxvoice.todos.routes.create_todo", fake_create)
+    monkeypatch.setattr("linxvoice.application.todos.use_cases.TodoService.create", fake_create)
     response = client.post("/api/v1/todos", json={"id": str(todo_id), "title": " Transmit this "})
 
     assert response.status_code == 201
@@ -81,9 +81,9 @@ def test_patch_requires_if_match(client) -> None:  # type: ignore[no-untyped-def
 
 def test_patch_reports_a_stale_write_as_problem_details(client, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     def stale(*_args, **_kwargs):  # type: ignore[no-untyped-def]
-        raise Problem(412, "Precondition failed", "The Todo changed.")
+        raise StaleTodoVersion
 
-    monkeypatch.setattr("linxvoice.todos.routes.update_todo", stale)
+    monkeypatch.setattr("linxvoice.application.todos.use_cases.TodoService.update", stale)
     response = client.patch(
         f"/api/v1/todos/{uuid4()}",
         json={"completed": True},
@@ -92,12 +92,15 @@ def test_patch_reports_a_stale_write_as_problem_details(client, monkeypatch) -> 
 
     assert response.status_code == 412
     assert response.content_type == "application/problem+json"
-    assert response.json["detail"] == "The Todo changed."
+    assert response.json["detail"] == "The Todo changed since it was last synchronized."
 
 
 def test_delete_returns_the_replication_transaction(client, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     todo_id = uuid4()
-    monkeypatch.setattr("linxvoice.todos.routes.delete_todo", lambda *_args: 88)
+    monkeypatch.setattr(
+        "linxvoice.application.todos.use_cases.TodoService.delete",
+        lambda *_args: TodoDeleteResult(id=todo_id, transaction_id=88),
+    )
 
     response = client.delete(f"/api/v1/todos/{todo_id}", headers={"If-Match": '"2"'})
 
@@ -171,7 +174,7 @@ def todo_factory(todo_id: UUID) -> Todo:
     now = datetime(2026, 8, 23, 12, 0, tzinfo=UTC)
     return Todo(
         id=todo_id,
-        title="Transmit this",
+        title=TodoTitle("Transmit this"),
         completed=False,
         created_at=now,
         updated_at=now,

@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from linxvoice.domain.todos import Todo
+
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -43,14 +45,23 @@ class TodoPatch(StrictModel):
 
 
 class TodoRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: UUID
     title: str
     completed: bool
     created_at: datetime
     updated_at: datetime
     version: int
+
+    @classmethod
+    def from_domain(cls, todo: Todo) -> "TodoRead":
+        return cls(
+            id=todo.id,
+            title=todo.title.value,
+            completed=todo.completed,
+            created_at=todo.created_at,
+            updated_at=todo.updated_at,
+            version=todo.version,
+        )
 
 
 class TodoMutationResponse(BaseModel):
