@@ -1,7 +1,7 @@
 import pytest
 
-from linxvoice.http import etag, parse_if_match
-from linxvoice.problems import Problem
+from linxvoice.adapters.http.etag import etag, parse_if_match
+from linxvoice.adapters.http.problems import Problem
 
 
 def test_if_match_parses_a_quoted_positive_version() -> None:

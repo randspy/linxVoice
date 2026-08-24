@@ -20,10 +20,10 @@ migrate:
 	cd backend && $(UV) run alembic upgrade head
 
 seed:
-	cd backend && $(UV) run python -m linxvoice.seed
+	cd backend && $(UV) run python -m linxvoice.bootstrap.seed
 
 backend:
-	cd backend && $(UV) run flask --app linxvoice.app run --debug --port 5000
+	cd backend && $(UV) run flask --app linxvoice.bootstrap.app run --debug --port 5000
 
 frontend:
 	cd frontend && $(PNPM) dev
@@ -32,13 +32,14 @@ dev: infra-up migrate
 	$(MAKE) -j2 backend frontend
 
 generate:
-	cd backend && $(UV) run python -m linxvoice.openapi
+	cd backend && $(UV) run python -m linxvoice.bootstrap.openapi
 	cd frontend && $(PNPM) generate:api
 
 check:
 	cd backend && $(UV) run ruff format --check src tests migrations
 	cd backend && $(UV) run ruff check src tests migrations
 	cd backend && $(UV) run mypy src
+	cd backend && $(UV) run lint-imports
 	cd frontend && $(PNPM) format:check
 	cd frontend && $(PNPM) lint
 	cd frontend && $(PNPM) typecheck

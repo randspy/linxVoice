@@ -5,13 +5,13 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from docker.errors import DockerException
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from testcontainers.community.postgres import PostgresContainer
 
-from linxvoice.problems import Problem
-from linxvoice.todos.schemas import TodoCreate, TodoPatch
-from linxvoice.todos.service import create_todo, delete_todo, update_todo
+from linxvoice.adapters.persistence.database import create_database
+from linxvoice.adapters.persistence.unit_of_work import SqlAlchemyUnitOfWork
+from linxvoice.application.todos.commands import CreateTodoCommand, UpdateTodoCommand
+from linxvoice.application.todos.errors import StaleTodoVersion
+from linxvoice.application.todos.use_cases import TodoService
 
 
 @pytest.mark.integration
@@ -20,31 +20,26 @@ def test_postgres_enforces_versioned_command_lifecycle() -> None:
         with PostgresContainer("postgres:17.6-alpine", driver="psycopg") as postgres:
             database_url = postgres.get_connection_url()
             migrate(database_url)
-            engine = create_engine(database_url)
-            session_factory = sessionmaker(engine, expire_on_commit=False)
+            engine, session_factory = create_database(database_url)
+            service = TodoService(lambda: SqlAlchemyUnitOfWork(session_factory))
             todo_id = uuid4()
 
-            with session_factory() as session, session.begin():
-                created = create_todo(session, TodoCreate(id=todo_id, title="Tracer Todo"))
+            created = service.create(CreateTodoCommand(id=todo_id, title="Tracer Todo"))
             assert created.todo.version == 1
-            assert created.txid > 0
+            assert created.transaction_id > 0
 
-            with session_factory() as session, session.begin():
-                changed = update_todo(session, todo_id, 1, TodoPatch(completed=True))
+            changed = service.update(
+                UpdateTodoCommand(id=todo_id, expected_version=1, completed=True)
+            )
             assert changed.todo.completed is True
             assert changed.todo.version == 2
 
-            with (
-                session_factory() as session,
-                session.begin(),
-                pytest.raises(Problem) as stale,
-            ):
-                update_todo(session, todo_id, 1, TodoPatch(title="Stale"))
-            assert stale.value.status == 412
+            with pytest.raises(StaleTodoVersion):
+                service.update(UpdateTodoCommand(id=todo_id, expected_version=1, title="Stale"))
 
-            with session_factory() as session, session.begin():
-                txid = delete_todo(session, todo_id, 2)
-            assert txid > 0
+            deleted = service.delete(todo_id, 2)
+            assert deleted.transaction_id > 0
+            engine.dispose()
     except DockerException as error:
         pytest.skip(f"Docker is unavailable: {error}")
 

@@ -1,6 +1,6 @@
 import re
 
-from linxvoice.problems import Problem
+from linxvoice.adapters.http.problems import Problem
 
 ETAG_PATTERN = re.compile(r'^"(?P<version>[1-9][0-9]*)"$')
 

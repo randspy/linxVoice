@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from linxvoice.todos.schemas import TodoCreate, TodoPatch
+from linxvoice.adapters.http.schemas import TodoCreate, TodoPatch
 
 
 def test_create_trims_the_title() -> None:

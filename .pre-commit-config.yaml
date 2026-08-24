@@ -13,6 +13,12 @@ repos:
       - id: gitleaks
   - repo: local
     hooks:
+      - id: backend-architecture
+        name: backend architecture contracts
+        entry: uv --project backend run lint-imports --config backend/pyproject.toml
+        language: system
+        pass_filenames: false
+        files: ^(backend/src|backend/pyproject\.toml)$
       - id: frontend-format
         name: frontend format check
         entry: corepack pnpm --dir frontend format:check
@@ -25,4 +31,3 @@ repos:
         language: system
         pass_filenames: false
         files: ^(backend/src|openapi\.json|frontend/src/api/generated)/
-

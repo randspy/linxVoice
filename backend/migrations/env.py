@@ -3,9 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from linxvoice.config import get_settings
-from linxvoice.database import Base
-from linxvoice.todos import model  # noqa: F401
+from linxvoice.adapters.persistence import todos  # noqa: F401
+from linxvoice.adapters.persistence.database import Base
+from linxvoice.bootstrap.config import get_settings
 
 config = context.config
 database_url = config.attributes.get("database_url", get_settings().database_url)
