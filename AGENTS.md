@@ -76,6 +76,34 @@ Before implementing a backend feature:
 - Every use case must have behavior-focused tests.
 - Run `make check` and the relevant test suites after changes.
 
+### Optional mutation testing
+
+`mutmut` is available as an optional diagnostic for assessing whether tests detect meaningful
+behavior changes. Agents may run it when it is likely to add value; it is not a required check for
+every change.
+
+- Prefer mutation testing for domain invariants, application branching and error selection,
+  boundary conditions, state transitions, and regression tests for subtle defects.
+- Mutmut 3 does not currently generate mutants for dunder methods such as dataclass
+  `__post_init__`. Do not interpret the absence of mutants for those domain rules as evidence that
+  their boundary tests are sufficient.
+- Usually skip it for documentation, formatting, dependency-only changes, generated code, simple
+  wiring, and other changes where mutations would not provide useful evidence.
+- Run the ordinary relevant tests first. Start with the smallest affected module or function, for
+  example `cd backend && uv run mutmut run "linxvoice.application.todos.use_cases*"`, before
+  considering a broad `uv run mutmut run`.
+- The default mutation configuration excludes integration tests because mutmut's forked workers
+  are incompatible with Testcontainers' Docker client on macOS. Persistence-adapter mutation
+  testing requires a deliberate, fork-safe database test setup; keep using the real PostgreSQL
+  integration suite for ordinary persistence verification.
+- Treat surviving mutants as investigation prompts, not automatic demands for more assertions.
+  Add a test when the mutation represents a meaningful behavior change; do not distort production
+  code or add implementation-coupled tests merely to improve a mutation score.
+- Prefer zero unexplained survivors in changed domain and application behavior over a blanket
+  project-wide percentage target. Report the scope run and any unresolved survivors.
+- Use `uv run mutmut results`, `uv run mutmut show <mutant-name>`, or `uv run mutmut browse` to
+  inspect results. Keep mutmut's generated `backend/mutants/` workspace out of version control.
+
 ## Code review rules
 
 Flag as an architectural defect when:

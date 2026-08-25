@@ -8,10 +8,10 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+backend/mutants/
 node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
 *.log
-
