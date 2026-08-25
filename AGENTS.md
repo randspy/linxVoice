@@ -104,6 +104,27 @@ every change.
 - Use `uv run mutmut results`, `uv run mutmut show <mutant-name>`, or `uv run mutmut browse` to
   inspect results. Keep mutmut's generated `backend/mutants/` workspace out of version control.
 
+### Cognitive complexity analysis
+
+`complexipy` is available for identifying Python functions whose nested control flow is difficult
+to understand. The normal `make check` run enforces the configured threshold and committed
+baseline. Agents may also run focused analysis when cognitive complexity is likely to provide
+useful design or review evidence.
+
+- Prefer focused analysis for nested business rules, orchestration, parsers, validation, error
+  translation, and functions that are already difficult to review. Usually skip additional
+  analysis for documentation, configuration, generated code, and mechanical changes.
+- Run from `backend/`, for example `uv run complexipy src/linxvoice/application/todos/use_cases.py`
+  or `uv run complexipy src/linxvoice --failed --suggest-refactors`.
+- Treat scores and refactoring suggestions as investigation prompts, not correctness findings.
+  Confirm any refactor with behavior-focused tests.
+- Preserve architectural ownership while reducing complexity. Do not move transport concerns into
+  application or domain code, introduce abstractions without a real boundary, or weaken an import
+  contract merely to lower a score.
+- Do not raise the threshold or refresh the snapshot merely to make a regression pass. If added
+  complexity is justified, document the reason and report any intentional baseline change.
+- Report the analyzed scope, notable findings, and any unresolved threshold violations.
+
 ## Code review rules
 
 Flag as an architectural defect when:

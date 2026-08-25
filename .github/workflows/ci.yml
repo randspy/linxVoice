@@ -55,6 +55,7 @@ jobs:
           uv run ruff format --check src tests migrations
           uv run ruff check src tests migrations
           uv run mypy src
+          uv run complexipy
           uv run lint-imports
           uv run pytest --cov --cov-branch --cov-report=term-missing
           uv run pip-audit
