@@ -39,6 +39,7 @@ check:
 	cd backend && $(UV) run ruff format --check src tests migrations
 	cd backend && $(UV) run ruff check src tests migrations
 	cd backend && $(UV) run mypy src
+	cd backend && $(UV) run complexipy
 	cd backend && $(UV) run lint-imports
 	cd frontend && $(PNPM) format:check
 	cd frontend && $(PNPM) lint

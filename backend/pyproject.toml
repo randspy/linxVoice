@@ -16,6 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  "complexipy>=7.0.1,<8",
   "import-linter>=2.6,<3",
   "mutmut>=3,<4",
   "mypy>=1.18,<3",
@@ -44,6 +45,11 @@ markers = ["integration: requires Docker and PostgreSQL"]
 source_paths = ["src/linxvoice"]
 pytest_add_cli_args = ["-m", "not integration"]
 pytest_add_cli_args_test_selection = ["tests"]
+
+[tool.complexipy]
+paths = ["src/linxvoice"]
+max-complexity-allowed = 15
+failed = true
 
 
 [tool.coverage.run]
