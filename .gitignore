@@ -12,6 +12,7 @@ backend/mutants/
 node_modules/
 frontend/dist/
 frontend/coverage/
+frontend/reports/
 frontend/playwright-report/
 frontend/test-results/
 *.log

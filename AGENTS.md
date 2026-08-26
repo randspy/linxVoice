@@ -104,6 +104,30 @@ every change.
 - Use `uv run mutmut results`, `uv run mutmut show <mutant-name>`, or `uv run mutmut browse` to
   inspect results. Keep mutmut's generated `backend/mutants/` workspace out of version control.
 
+### Optional frontend mutation testing
+
+StrykerJS is available as an optional diagnostic for assessing whether frontend tests detect
+meaningful behavior changes. Agents may run it when it is likely to add value; it is not a required
+check for every change.
+
+- Prefer mutation testing for client-side branching, validation and error selection, state
+  transitions, optimistic synchronization behavior, and regression tests for subtle defects.
+- Usually skip it for documentation, formatting, dependency-only changes, generated code, styling,
+  simple wiring, and other changes where mutations would not provide useful evidence.
+- Run the ordinary relevant tests first. Start with the smallest affected production file, for
+  example
+  `cd frontend && corepack pnpm exec stryker run --mutate 'src/features/todos/todoMutationStatus.ts'`,
+  before considering a broad `corepack pnpm test:mutation` run.
+- The default Stryker configuration uses the Vitest runner and TypeScript checker and excludes
+  tests, generated API and route-tree files, and bootstrap-only entry points.
+- Treat surviving mutants as investigation prompts, not automatic demands for more assertions.
+  Add a test when the mutation represents a meaningful behavior change; do not distort production
+  code or add implementation-coupled tests merely to improve a mutation score.
+- Prefer zero unexplained survivors in changed frontend behavior over a blanket project-wide
+  percentage target. Report the scope run and any unresolved survivors.
+- Inspect the clear-text output or `frontend/reports/mutation.html`. Keep generated reports out of
+  version control.
+
 ### Cognitive complexity analysis
 
 `complexipy` is available for identifying Python functions whose nested control flow is difficult
