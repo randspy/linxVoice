@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
     "test:e2e": "playwright test",
     "generate:api": "openapi-ts"
   },
@@ -43,6 +44,9 @@
     "@eslint/js": "10.0.1",
     "@hey-api/openapi-ts": "0.99.0",
     "@playwright/test": "1.62.1",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/typescript-checker": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
     "@tanstack/eslint-plugin-query": "5.102.1",
     "@tanstack/router-plugin": "1.168.35",
     "@testing-library/jest-dom": "7.0.1",

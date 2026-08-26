@@ -6,7 +6,16 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'playwright-report', 'test-results', 'src/api/generated'] },
+  {
+    ignores: [
+      'dist',
+      'coverage',
+      'reports',
+      'playwright-report',
+      'test-results',
+      'src/api/generated',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   query.configs['flat/recommended'],
