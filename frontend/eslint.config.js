@@ -5,6 +5,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
+import featureBoundaries from './eslint/feature-boundaries.js'
+
 export default tseslint.config(
   {
     ignores: [
@@ -57,5 +59,11 @@ export default tseslint.config(
   {
     files: ['src/components/ui/**/*.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
+    files: ['src/features/*/{domain,application,adapters,presentation}/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}'],
+    plugins: { architecture: { rules: { 'feature-boundaries': featureBoundaries } } },
+    rules: { 'architecture/feature-boundaries': 'error' },
   },
 )

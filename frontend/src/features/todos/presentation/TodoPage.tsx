@@ -1,6 +1,5 @@
-import { eq, useDbClient, useLiveQuery } from '@tanstack/react-db'
 import { useForm } from '@tanstack/react-form'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 
 import { Badge } from '@/components/ui/badge'
@@ -9,46 +8,40 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { Input } from '@/components/ui/input'
 import { Toggle } from '@/components/ui/toggle'
 
-import { ApiError } from '../../api/client'
-import { createTodo, getTodoCollection, removeTodo, type Todo, updateTodo } from './todoCollection'
-import { useMutationStatus } from './todoMutationStatus'
-import styles from './TodoPage.module.css'
-
-export type TodoFilter = 'all' | 'active' | 'completed'
+import type { TodoCommands } from '../application/ports'
+import { TodoConflictError } from '../application/todoErrors'
+import type { TodoMutationSnapshot } from '../application/todoMutationStore'
+import { TODO_TITLE_MAX_LENGTH, type Todo, type TodoFilter } from '../domain/todo'
+import styles from '../TodoPage.module.css'
 
 type TodoPageProps = {
   filter: TodoFilter
   onFilterChange: (filter: TodoFilter) => void
+  todos: readonly Todo[]
+  queryState: { isLoading: boolean; isError: boolean }
+  mutations: TodoMutationSnapshot
+  commands: TodoCommands
+  isOnline?: boolean
 }
 
-const titleSchema = z.string().trim().min(1, 'Give the signal a title.').max(200)
+const titleSchema = z.string().trim().min(1, 'Give the signal a title.').max(TODO_TITLE_MAX_LENGTH)
 
-export function TodoPage({ filter, onFilterChange }: TodoPageProps) {
-  const client = useDbClient()
-  const collection = useMemo(() => getTodoCollection(client), [client])
-  const query = useLiveQuery({
-    query: (builder) => {
-      const todos = builder.from({ todo: collection })
-      const filtered =
-        filter === 'active'
-          ? todos.where(({ todo }) => eq(todo.completed, false))
-          : filter === 'completed'
-            ? todos.where(({ todo }) => eq(todo.completed, true))
-            : todos
-      return filtered
-        .orderBy(({ todo }) => todo.created_at, 'asc')
-        .orderBy(({ todo }) => todo.id, 'asc')
-    },
-  })
-  const mutation = useMutationStatus()
-  const connection = mutation.confirmationDelayed
+export function TodoPage({
+  filter,
+  onFilterChange,
+  todos,
+  queryState,
+  mutations,
+  commands,
+  isOnline = navigator.onLine,
+}: TodoPageProps) {
+  const connection = mutations.confirmationDelayed
     ? 'delayed'
-    : query.isLoading
+    : queryState.isLoading
       ? 'connecting'
-      : query.isError || !navigator.onLine
+      : queryState.isError || !isOnline
         ? 'disconnected'
         : 'live'
-  const allTodos = query.data ?? []
 
   return (
     <main className={styles.shell}>
@@ -57,7 +50,7 @@ export function TodoPage({ filter, onFilterChange }: TodoPageProps) {
         <a className={styles.wordmark} href="/todos" aria-label="linxVoice home">
           linx<span>Voice</span>
         </a>
-        <SyncBadge state={connection} pending={mutation.pendingIds.size} />
+        <SyncBadge state={connection} pending={mutations.pendingIds.size} />
       </header>
 
       <section className={styles.hero}>
@@ -76,7 +69,7 @@ export function TodoPage({ filter, onFilterChange }: TodoPageProps) {
       </section>
 
       <section className={styles.workspace} aria-labelledby="list-title">
-        <CreateTodoForm />
+        <CreateTodoForm commands={commands} />
         <div className={styles.listHeader}>
           <div>
             <p className={styles.index}>01</p>
@@ -85,20 +78,26 @@ export function TodoPage({ filter, onFilterChange }: TodoPageProps) {
           <FilterTabs active={filter} onChange={onFilterChange} />
         </div>
 
-        {query.isError ? (
+        {queryState.isError ? (
           <div className={styles.emptyState} role="alert">
             <strong>The signal dropped.</strong>
             <span>Existing entries remain visible when the connection returns.</span>
           </div>
-        ) : allTodos.length === 0 ? (
+        ) : todos.length === 0 ? (
           <div className={styles.emptyState}>
             <strong>{filter === 'all' ? 'The register is quiet.' : `No ${filter} signals.`}</strong>
             <span>{filter === 'all' ? 'Send the first Todo above.' : 'Try another filter.'}</span>
           </div>
         ) : (
           <ol className={styles.todoList} aria-live="polite">
-            {allTodos.map((todo, index) => (
-              <TodoRow key={todo.id} todo={todo} index={index + 1} />
+            {todos.map((todo, index) => (
+              <TodoRow
+                key={todo.id}
+                todo={todo}
+                index={index + 1}
+                mutations={mutations}
+                commands={commands}
+              />
             ))}
           </ol>
         )}
@@ -112,8 +111,7 @@ export function TodoPage({ filter, onFilterChange }: TodoPageProps) {
   )
 }
 
-function CreateTodoForm() {
-  const client = useDbClient()
+function CreateTodoForm({ commands }: { commands: Pick<TodoCommands, 'create'> }) {
   const [submitError, setSubmitError] = useState<string>()
   const form = useForm({
     defaultValues: { title: '' },
@@ -123,7 +121,7 @@ function CreateTodoForm() {
       setSubmitError(undefined)
       formApi.reset()
       try {
-        await createTodo(client, title)
+        await commands.create(title)
       } catch (error) {
         setSubmitError(messageFor(error, 'The Todo could not be saved.'))
         if (!formApi.state.values.title) formApi.setFieldValue('title', title)
@@ -145,7 +143,9 @@ function CreateTodoForm() {
         validators={{
           onBlur: titleSchema,
           onChange: ({ value }) =>
-            value.length > 200 ? 'Keep it under 200 characters.' : undefined,
+            value.length > TODO_TITLE_MAX_LENGTH
+              ? `Keep it under ${TODO_TITLE_MAX_LENGTH} characters.`
+              : undefined,
         }}
       >
         {(field) => (
@@ -183,10 +183,18 @@ function CreateTodoForm() {
   )
 }
 
-function TodoRow({ todo, index }: { todo: Todo; index: number }) {
-  const client = useDbClient()
-  const mutation = useMutationStatus()
-  const pending = mutation.pendingIds.has(todo.id)
+function TodoRow({
+  todo,
+  index,
+  mutations,
+  commands,
+}: {
+  todo: Todo
+  index: number
+  mutations: TodoMutationSnapshot
+  commands: Pick<TodoCommands, 'rename' | 'setCompleted' | 'remove'>
+}) {
+  const pending = mutations.pendingIds.has(todo.id)
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string>()
   const [conflict, setConflict] = useState<string>()
@@ -198,11 +206,11 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
       const attempted = value.title.trim()
       setError(undefined)
       try {
-        await updateTodo(client, todo, { title: attempted })
+        await commands.rename(todo, attempted)
         setEditing(false)
         setConflict(undefined)
       } catch (caught) {
-        if (caught instanceof ApiError && caught.status === 412) setConflict(attempted)
+        if (caught instanceof TodoConflictError) setConflict(attempted)
         setError(messageFor(caught, 'The title could not be updated.'))
       }
     },
@@ -211,7 +219,7 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
   async function toggle() {
     setError(undefined)
     try {
-      await updateTodo(client, todo, { completed: !todo.completed })
+      await commands.setCompleted(todo, !todo.completed)
     } catch (caught) {
       setError(messageFor(caught, 'The change was rolled back.'))
     }
@@ -220,7 +228,7 @@ function TodoRow({ todo, index }: { todo: Todo; index: number }) {
   async function confirmDelete() {
     setError(undefined)
     try {
-      await removeTodo(client, todo)
+      await commands.remove(todo)
     } catch (caught) {
       setError(messageFor(caught, 'The Todo could not be deleted.'))
     } finally {

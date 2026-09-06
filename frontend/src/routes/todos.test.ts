@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Route, todoSearchSchema } from './todos'
 
-vi.mock('../features/todos/todoCollection', () => ({
-  getTodoCollection: vi.fn(() => ({ preload: vi.fn(() => Promise.resolve()) })),
+const composition = vi.hoisted(() => ({ preload: vi.fn(() => Promise.resolve()) }))
+
+vi.mock('../features/todos/bootstrap/todoComposition', () => ({
+  getTodoComposition: vi.fn(() => ({ service: { preload: composition.preload } })),
 }))
 
 describe('/todos route contract', () => {
@@ -13,11 +15,10 @@ describe('/todos route contract', () => {
 
   it('preloads the Electric collection before rendering', async () => {
     const loader = Route.options.loader
-    const collection = await import('../features/todos/todoCollection')
     if (typeof loader !== 'function') throw new Error('Expected a route loader function')
 
     await loader({ context: { dbClient: {} }, location: {} } as never)
 
-    expect(collection.getTodoCollection).toHaveBeenCalled()
+    expect(composition.preload).toHaveBeenCalled()
   })
 })

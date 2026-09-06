@@ -36,6 +36,37 @@ HTTP adapter.
 
 The frontend never keeps a second Todo cache in TanStack Query. Query is used only for readiness diagnostics.
 
+## Frontend dependency rule
+
+The Todo feature uses five explicit roles. Other features can start smaller and extract these
+roles when they have responsibilities to separate:
+
+| Layer | Owns | Allowed dependencies |
+| --- | --- | --- |
+| `domain` | Framework-independent entities, value types, and business invariants | Other domain modules |
+| `application` | Use cases, outcomes, observable application state, and ports | `domain`, other application modules |
+| `adapters` | TanStack DB/Electric repositories, generated HTTP gateways, and React bindings for external stores | `application`, `domain`, integrations |
+| `presentation` | React views, form interaction, and display formatting | `application`, `domain`, shared UI |
+| `bootstrap` and `routes` | Concrete construction and dependency wiring | All feature layers |
+
+Dependencies point inward from composition to adapters and presentation, then to application and
+domain. Presentation components receive application services and view data as props; they do not
+import a repository, generated SDK, or TanStack DB. Application modules do not import React or any
+other package. ESLint's `architecture/feature-boundaries` rule enforces these directions for
+production modules in the feature layers, including aliases, re-exports, and dynamic imports.
+The normal lint command also runs the dependency-contract tests. See ADR 0004 for the allowed
+presentation packages and shared directories.
+
+The Todo feature demonstrates the split. The domain normalizes titles and constructs optimistic
+entities. `TodoService` owns command orchestration and mutation-state semantics through a
+`TodoRepository` port. The TanStack repository implements that port and translates HTTP/Electric
+behavior into application outcomes. The `/todos` route is the composition boundary that connects
+the live-query adapter and service to the React view.
+
+On a confirmation timeout, the repository immediately returns a delayed outcome. The service marks
+sync as delayed before asking the repository to reload; a reload failure preserves that status
+and does not report the accepted write as rejected. Time and ID generation are injected functions.
+
 ## Todo model
 
 `todos(id UUID, title VARCHAR(200), completed BOOLEAN, created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ, version INTEGER)`

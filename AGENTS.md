@@ -116,7 +116,7 @@ check for every change.
   simple wiring, and other changes where mutations would not provide useful evidence.
 - Run the ordinary relevant tests first. Start with the smallest affected production file, for
   example
-  `cd frontend && corepack pnpm exec stryker run --mutate 'src/features/todos/todoMutationStatus.ts'`,
+  `cd frontend && corepack pnpm exec stryker run --mutate 'src/features/todos/application/todoMutationStore.ts'`,
   before considering a broad `corepack pnpm test:mutation` run.
 - The default Stryker configuration uses the Vitest runner and TypeScript checker and excludes
   tests, generated API and route-tree files, and bootstrap-only entry points.
