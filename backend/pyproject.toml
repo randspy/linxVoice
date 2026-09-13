@@ -16,7 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "complexipy>=7.0.1,<8",
+  "complexipy>=7.0.1,<9",
   "import-linter>=2.6,<3",
   "mutmut>=3,<4",
   "mypy>=1.18,<3",
