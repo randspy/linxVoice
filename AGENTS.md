@@ -159,3 +159,13 @@ Flag as an architectural defect when:
 - a use case accesses a concrete database implementation;
 - dependency wiring occurs outside the bootstrap layer;
 - an Import Linter contract is weakened instead of correcting the dependency violation.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues for `randspy/linxVoice`. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context layout: root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
