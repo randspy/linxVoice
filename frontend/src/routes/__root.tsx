@@ -15,7 +15,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     <main className="fatal-state">
       <p className="eyebrow">Signal interrupted</p>
       <h1>Something broke the line.</h1>
-      <p>{error.message}</p>
+      <p>{error instanceof Error ? error.message : 'An unexpected error occurred.'}</p>
       <a href="/todos">Reconnect</a>
     </main>
   ),
